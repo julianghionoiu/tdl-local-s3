@@ -37,8 +37,8 @@ def run(command):
 
     os.chmod(minio_bin, 0x755)
     if command == "start":
-        my_env = {'MINIO_ACCESS_KEY': "minio_access_key",
-                  'MINIO_SECRET_KEY': "minio_secret_key",
+        my_env = {'MINIO_ACCESS_KEY': "local_test_access_key",
+                  'MINIO_SECRET_KEY': "local_test_secret_key",
                   'MINIO_BROWSER': "off"}
         execute(my_env, [minio_bin, "server", STORAGE_FOLDER], is_shell, pid_file)
         wait_until_port_is_open(port, 5)
