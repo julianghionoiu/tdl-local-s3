@@ -5,7 +5,7 @@ import socket
 import subprocess
 import sys
 import time
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import yaml
 
 SCRIPT_FOLDER = os.path.dirname(os.path.realpath(__file__))
@@ -73,7 +73,7 @@ def run(command, buckets_to_configure):
 def execute(my_env, command, is_shell, pid_file=None):
     env_copy = os.environ.copy()
     env_copy.update(my_env)
-    print "Execute: " + " ".join(command)
+    print("Execute: " + " ".join(command))
     proc = subprocess.Popen(command, env=env_copy, shell=is_shell)
 
     if pid_file:
@@ -84,12 +84,12 @@ def execute(my_env, command, is_shell, pid_file=None):
 
 
 def download_and_show_progress(url, file_name):
-    print "Downloading from: %s" % url
-    u = urllib2.urlopen(url)
+    print("Downloading from: %s" % url)
+    u = urllib.request.urlopen(url)
     f = open(file_name, 'wb')
     meta = u.info()
-    file_size = int(meta.getheaders("Content-Length")[0])
-    print "Downloading: %s Bytes: %s" % (file_name, file_size)
+    file_size = int(meta.get_all("Content-Length")[0])
+    print("Downloading: %s Bytes: %s" % (file_name, file_size))
 
     file_size_dl = 0
     block_sz = 8192
@@ -102,7 +102,7 @@ def download_and_show_progress(url, file_name):
         f.write(buffer)
         status = r"%10d  [%3.2f%%]" % (file_size_dl, file_size_dl * 100. / file_size)
         status = status + chr(8) * (len(status) + 1)
-        print status,
+        print(status, end=' ')
 
     f.close()
 
@@ -110,13 +110,13 @@ def download_and_show_progress(url, file_name):
 def wait_until_port_is_open(port, delay):
     n = 0
     while n < 5:
-        print "Is application listening on port " + str(port) + "? "
+        print("Is application listening on port " + str(port) + "? ")
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         result = sock.connect_ex(('127.0.0.1', port))
         if result == 0:
-            print "Yes"
+            print("Yes")
             return
-        print "No. Retrying in " + str(delay) + " seconds"
+        print("No. Retrying in " + str(delay) + " seconds")
         n = n + 1
         time.sleep(delay)
 
@@ -125,7 +125,7 @@ def kill_process(pid_file):
     f = open(pid_file, "r")
     try:
         pid_str = f.read()
-        print "Kill process with pid: " + pid_str
+        print("Kill process with pid: " + pid_str)
         os.kill(int(pid_str), signal.SIGTERM)
     except Exception:
         f.close()
@@ -147,7 +147,7 @@ def log_info(message):
 
 
 def log(message):
-    print time.asctime(), message
+    print(time.asctime(), message)
 
 
 # ~~~ Configure
@@ -163,7 +163,7 @@ def extract_buckets_from_config_file(task_env_file):
         task_env_as_dict = yaml.load(stream)
 
     log_info("Bucket related ENV variables: ")
-    for key, value in task_env_as_dict.items():
+    for key, value in list(task_env_as_dict.items()):
         if LOCAL_CONFIG_ARN_MARKER in value:
             log_info(key + "=" + value)
             bucket_name = value.replace(LOCAL_CONFIG_ARN_MARKER, "")
